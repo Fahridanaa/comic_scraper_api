@@ -13,7 +13,7 @@ import random
 from typing import List, Dict, Any
 from tqdm import tqdm
 import unicodedata
-from src.services.cloudinary_service import folder_exists, upload_image
+from src.services.cloudinary_service import file_exists, folder_exists, upload_image
 from src.models.comic import Comic
 from src.services.db_connection import SessionLocal
 
@@ -139,10 +139,12 @@ def save_comic_metadata(comic_meta, comic_slug):
                 slug=comic_slug
             )
             db.add(new_comic)
-            db.commit()
             print(f"Saved comic metadata to database: {comic_slug}")
         else:
-            print(f"Comic metadata already exists in database: {comic_slug}")
+            existing_comic.updated_on=datetime.now()
+            print(f"Update comic metadata in database: {comic_slug}")
+
+        db.commit()
     except Exception as e:
         db.rollback()
         print(f"Error saving comic metadata to database: {str(e)}")
@@ -173,6 +175,9 @@ def extract_comic_meta(soup: BeautifulSoup) -> Dict[str, Any]:
 
 # Function to handle cover image
 async def handle_cover_image(session: ClientSession, cover_image_url: str, comic_slug: str):
+    if file_exists(comic_slug, 'cover'):
+        print('Cover image already exists. Skipping...')
+        return None
     cloudinary_url = await download_image(session, cover_image_url, comic_slug, is_cover=True)
     if cloudinary_url:
         print('Cover image uploaded successfully')

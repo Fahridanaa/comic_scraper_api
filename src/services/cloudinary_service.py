@@ -61,3 +61,20 @@ def folder_exists(folder_path):
     except Exception as e:
         print(f"Error checking folder existence: {str(e)}")
         return False
+
+def file_exists(folder, filename):
+    """
+    Check if a file exists in a folder in Cloudinary.
+
+    :param folder: The folder where the file is stored
+    :param filename: The filename to check
+    :return: True if the file exists, False otherwise
+    """
+    try:
+        # List the contents of the folder
+        result = api.resources(type="upload", prefix=f"{folder}/{filename}", max_results=1)
+        # If the file exists, it will have a 'resources' key
+        return 'resources' in result and len(result['resources']) > 0
+    except Exception as e:
+        print(f"Error checking file existence: {str(e)}")
+        return False
